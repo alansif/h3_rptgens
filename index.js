@@ -55,11 +55,11 @@ app.get("/api/query", function(req, res){
             let result = await messageHandler(pid, sqlstr);
             let result2 = await messageHandler(pid, sqlstr2);
             let patterns = [
-                {pattern: `**/${pid}*.jpg`, path: config.matpath[0]},
+                {pattern: [`**/${pid}*.jpg`,`**/${pid}*.pdf`], path: config.matpath[0]},
                 {pattern: result2.recordset.map(v => `**/${v.AccessionNo}.jpg`), path: config.matpath[1]},
                 {pattern: `**/${pid}*.jpg`, path: config.matpath[2]},
                 {pattern: `**/${pid}*.jpg`, path: config.matpath[3]},
-                {pattern: `**/${pid}*.jpg`, path: config.matpath[4]},
+                {pattern: [`**/${pid}*.jpg`,`**/${pid}*.pdf`], path: config.matpath[4]},
             ];
             let files = patterns.map(mp => globby.sync(mp.pattern, {cwd:mp.path}).sort().reverse());
             console.log(files);
