@@ -61,7 +61,8 @@ app.get("/api/query", function(req, res){
                 {pattern: `**/${pid}*.jpg`, path: config.matpath[3]},
                 {pattern: `**/${pid}*.jpg`, path: config.matpath[4]},
             ];
-            let files = patterns.map(mp => globby.sync(mp.pattern, {cwd:mp.path}).sort());
+            let files = patterns.map(mp => globby.sync(mp.pattern, {cwd:mp.path}).sort().reverse());
+            console.log(files);
             res.status(200).json({info:result.recordset, files});
         } catch(err) {
             res.status(500).json(err);
