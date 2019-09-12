@@ -85,8 +85,8 @@ function genFC2(data) {
 function makeReport(data, res) {
 	let strmFC = genFC(data);
 	let strmFC2 = genFC2(data);
-	let wstream = new PDFWStreamForBuffer();
-	let globalWriter = hummus.createWriter(wstream);
+	let wstream = new hummus.PDFStreamForResponse(res);
+	let globalWriter = hummus.createWriter(wstream, {userPassword: '', ownerPassword: 'h3owner1', userProtectionFlag:4});
 	globalWriter.appendPDFPagesFromPDF(new hummus.PDFRStreamForBuffer(strmFC.buffer));
 	globalWriter.appendPDFPagesFromPDF(new hummus.PDFRStreamForBuffer(strmFC2.buffer));
 	data.files.forEach((v, index) => {
@@ -97,7 +97,6 @@ function makeReport(data, res) {
 	});
 	globalWriter.appendPDFPagesFromPDF(config.tppath + 'tpback.pdf');
 	globalWriter.end();
-	hummus.recrypt(new hummus.PDFRStreamForBuffer(wstream.buffer), new hummus.PDFStreamForResponse(res), {userPassword: '', ownerPassword: 'h3owner1', userProtectionFlag:4});
 }
 
 exports.makeReport = makeReport;

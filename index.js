@@ -1,6 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 const globby = require('globby');
+const compression = require('compression');
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -36,6 +37,17 @@ async function messageHandler(pid, ss) {
 }
 
 const app = express();
+
+app.use(compression({ filter: shouldCompress, level: 0 }));
+
+function shouldCompress (req, res) {
+    if (!!res.outputpdf) {
+      return true
+    }
+    // fallback to standard filter function
+    return compression.filter(req, res)
+}
+
 const opts = {redirect: false};
 app.use('/files/1', express.static(config.matpath[0], opts));
 app.use('/files/2', express.static(config.matpath[1], opts));
@@ -91,9 +103,9 @@ app.get("/api/upload", function(req, res){
 
 app.post("/api/make", function(req, res){
     console.log(require('util').inspect(req.body, false, null, true));
-    res.writeHead(200, {'Content-Type': 'application/pdf'});
+//    res.outputpdf = true; //开了压缩慢很多
     pdfgen.makeReport(req.body, res);
-	res.end();
+    res.end();
 });
 
 app.listen(config.port, () => {
