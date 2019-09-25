@@ -30,6 +30,9 @@ PDFWStreamForBuffer.prototype.getCurrentPosition = function()
     return this.position;
 };
 
+const symbolMark = "√";
+const symbolCross = "×";	//✗✘✕✖🗴🗶
+
 function pageCreator(func) {
 	return (tpfile, args) => {
 		let wstream = new PDFWStreamForBuffer();
@@ -60,14 +63,14 @@ function genFC(data) {
 	const d = new Date(data.examdate);
 	let ta = [
 		{text:data.name, x:141, y:244},
-		{text:'√', x:data.sex==='男' ? 141 : 213, y:202},
+		{text:symbolMark, x:data.sex==='男' ? 141 : 213, y:202},
 		{text:data.id, x:141, y:160},
 		{text:d.getFullYear(), x:140, y:117},
 		{text:d.getMonth()+1, x:208, y:117},
 		{text:d.getDate(), x:250, y:117},
 	];
-	if (data.edscp.includes('无痛胃镜')) ta.push({text:'√', x:141, y:76});
-	if (data.edscp.includes('无痛肠镜')) ta.push({text:'√', x:214, y:76});
+	if (data.edscp.includes('无痛胃镜')) ta.push({text:symbolMark, x:141, y:76});
+	if (data.edscp.includes('无痛肠镜')) ta.push({text:symbolMark, x:214, y:76});
 	return createTextPage(config.tppath + 'tpfront.pdf', ta);
 }
 
@@ -75,9 +78,7 @@ function genFC2(data) {
 	const ys = [300,350,400,450,500];
 	let ta = [];
 	data.files.forEach((v, index) => {
-		if (v.length > 0) {
-			ta.push({text:'√', x:66, y:868-ys[index]});
-		}
+		ta.push({text:v.length > 0 ? symbolMark : symbolCross, x:66, y:868-ys[index]});
 	});
 	return createTextPage(config.tppath + 'tpfront2.pdf', ta);
 }
