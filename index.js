@@ -21,8 +21,8 @@ const pool1Connect = pool1.connect();
 pool1.on('error', err => {
 });
 
-const sqlstr = "select PatientID,XM1,XB1,ScheduleDate,SQMD FROM RITB1 left join RITB on RITB1.DJH1=RITB.DJH1 where PatientID=@pid and StudyStatus='已审核'";
-const sqlstr2 = "select AccessionNo from RITB,RITB1 where RITB.DJH1=RITB1.DJH1 and PatientID=@pid and StudyStatus='已审核'";
+const sqlstr = "select PatientID,XM1,XB1,ScheduleDate,SQMD FROM RITB1 left join RITB on RITB1.DJH1=RITB.DJH1 where PatientID=@pid and StudyStatus in ('已审核','已报告')";
+const sqlstr2 = "select AccessionNo from RITB,RITB1 where RITB.DJH1=RITB1.DJH1 and PatientID=@pid and StudyStatus in ('已审核','已报告')";
 
 async function messageHandler(pid, ss) {
     await pool1Connect; // ensures that the pool has been created
