@@ -8,27 +8,37 @@ const bodyParser = require("body-parser");
 const config = require('./config');
 const multer = require("multer");
 const upload = multer({ dest: config.filespath });
-const pdfgen = require('./pdfgen');
+//const pdfgen = require('./pdfgen');
+
+const https = require("https");
+const httpsOption = {
+    key : fs.readFileSync("./https/2_report.huasanclinic.com.key"),
+    cert: fs.readFileSync("./https/1_report.huasanclinic.com_bundle.crt")
+}
 
 if (!fs.existsSync(config.filespath)){
     fs.mkdirSync(config.filespath);
 }
 
 const sql = require('mssql');
+const { query } = require("express");
 const pool1 = new sql.ConnectionPool(config.db);
 const pool1Connect = pool1.connect();
 
 pool1.on('error', err => {
 });
 
-const sqlstr = "select RITB1.DJH1,AccessionNo,PatientID,XM1,XB1,ScheduleDate,StudyTime,StudyUser,SQMD FROM RITB1 left join RITB on RITB1.DJH1=RITB.DJH1 where PatientID=@pid and StudyStatus in ('已审核','已报告')";
-const sqlstr2 = "select AccessionNo from RITB,RITB1 where RITB.DJH1=RITB1.DJH1 and PatientID=@pid and StudyStatus in ('已审核','已报告')";
+const sqlstr = "select RITB1.DJH1,AccessionNo,PatientID,XM1,XB1,ScheduleDate,StudyTime,StudyUser,SQMD FROM RITB1 left join RITB on RITB1.DJH1=RITB.DJH1 where StudyStatus in ('已审核','已报告') and ";
+const sqlstr2 = "select AccessionNo from RITB,RITB1 where RITB.DJH1=RITB1.DJH1 and StudyStatus in ('已审核','已报告') and ";
+const qid = "PatientID = @q";
+const qname = "XM1 = @q";
+const qdate = "ScheduleDate = @q";
 
-async function messageHandler(pid, ss) {
+async function messageHandler(p, ss) {
     await pool1Connect; // ensures that the pool has been created
     try {
-    	const request = new sql.Request(pool1)
-        const result = await request.input("pid", pid).query(ss);
+        const request = new sql.Request(pool1);
+        const result = await request.input("q", p).query(ss);
     	return result;
     } catch (err) {
         console.error('SQL error', err);
@@ -61,11 +71,26 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.get("/api/query", function(req, res){
-    let pid = req.query['pid'] || '';
+    let p;
+    let str;
+    if (req.query['pid']) {
+        p = req.query['pid'];
+        str = qid;
+    } else if (req.query['pname']) {
+        p = req.query['pname'];
+        str = qname;
+    } else if (req.query['pdate']) {
+        p = req.query['pdate'];
+        str = qdate;
+    } else {
+        res.status(400).end();
+        return;
+    }
     let f = async() => {
         try{
-            let result = await messageHandler(pid, sqlstr);
-            let result2 = await messageHandler(pid, sqlstr2);
+            let result = await messageHandler(p, sqlstr + str);
+            let result2 = await messageHandler(p, sqlstr2 + str);
+            const pid = req.query['pid'] || 0;
             let patterns = [
                 {pattern: [`**/${pid}*.jpg`,`**/${pid}*.pdf`], path: config.matpath[0]},
                 {pattern: result2.recordset.map(v => `**/${v.AccessionNo}.jpg`), path: config.matpath[1]},
@@ -99,14 +124,20 @@ app.get("/api/upload", function(req, res){
     console.log(req.query);
 	res.status(200).end();
 });
-
+/*
 app.post("/api/make", function(req, res){
     console.log(require('util').inspect(req.body, false, null, true));
 //    res.outputpdf = true; //开了压缩慢很多
     pdfgen.makeReport(req.body, res);
     res.end();
 });
-
+*/
+/*
 app.listen(config.port, () => {
+    console.log("Server is running on port " + config.port + "...");
+});
+*/
+const server = https.createServer(httpsOption, app);
+server.listen(config.port, function(){
     console.log("Server is running on port " + config.port + "...");
 });
